@@ -37,7 +37,7 @@ class Claw:
                 async with session.get(request['url'], params=request['params'], headers=request['headers']) as response:
                     try:
                         assert response.status == 200
-                        if request['type'] is 'json':
+                        if request['type'] == 'json':
                             content = await response.json()
                         else:
                             content = await response.text(request['type'])
