@@ -17,7 +17,7 @@ def push(func):
         pipe.execute()
     return dec
 
-# list operation 列表操作
+# list operation
 @push
 def redis_push(redis, key, objects):
     for obj in objects:
@@ -33,7 +33,7 @@ def redis_rpoplpush(redis, r_key, l_key):
     if serialization:
         return pickle.loads(serialization)
 
-# set operation 集合操作
+# set operation
 @push
 def redis_sadd(redis, key, objects):
     for obj in objects:

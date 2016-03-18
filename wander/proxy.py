@@ -1,17 +1,5 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-'''
-验证代理类 - 协程 -
-参数
-test_url        测试url
-use_https_proxy 是否使用https代理 -- 功能暂时未添加
-redis           redis实例
-raw_proxy_key   redis中存储的未验证的代理key  反序列化后的格式同proxy_key
-proxy_key       redis中存储的的代理key       反序列化后的数据格式 {'ip': ip地址, 'port': 端口, 'protocol': 协议}
-方法
-_verify_proxy(proxy)   验证proxy，若可用则存入redis中
-_verify_worker()       从redis中获取为验证的proxy，并调用_verify_proxy，直至无可用raw_proxy
-'''
 
 import logging
 import asyncio
@@ -19,7 +7,7 @@ import aiohttp
 from base import redis_push, redis_pop
 
 class Proxy:
-    def __init__(self, test_url, use_https_proxy=False, *, redis, raw_proxy_key, proxy_key):
+    def __init__(self, test_url, use_https_proxy=False, *, redis, raw_proxy_key=None, proxy_key=None):
         self.test_url = test_url
         self.use_https_proxy = use_https_proxy # don't use now
         self.concurrency = 15
@@ -39,6 +27,7 @@ class Proxy:
                         assert response.status == 200
                         print('Good proxy: {}'.format(proxy['ip']))
                         redis_push(self.redis, self.proxy_key, proxy)
+                        bfs.add(proxy)
                     except: 
                         print('Bad proxy: {}, {}'.format(proxy['ip'], response.status))        
         except: #ProxyConnectionError, HttpProxyError and etc?
@@ -49,10 +38,21 @@ class Proxy:
     async def _worker(self):
         while True:
             proxy = redis_pop(self.redis, self.raw_proxy_key)
+            if proxy and (not(proxy in bfs)): # boom filter
+                if proxy['protocol'] == 'https':
+                    continue
+                await self._verify_proxy(proxy)
+            else:
+                break
+                
+    async def _loop_worker(self):
+        while True:
+            proxy = redis_pop(self.redis, self.raw_proxy_key)
             if proxy:
                 if proxy['protocol'] == 'https':
                     continue
                 await self._verify_proxy(proxy)
+                await asyncio.sleep(1)
             else:
                 break
             
@@ -63,3 +63,8 @@ class Proxy:
         loop.run_until_complete(fs)
         loop.close()
         print('~~~~~~~~~~proxy verification end~~~~~~~~~~')
+        
+    def loop_main(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(_loop_worker())
+        loop.close()
