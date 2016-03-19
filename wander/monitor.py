@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import pickle
+from base import redis_info
+import redis
 import subprocess
 import time
+import os
 
 def setup():
     subs = [subprocess.Popen(['python3.5', 'proxyrequest.py'])]
@@ -12,10 +14,23 @@ def setup():
     subs.append(subprocess.Popen(['python3.5', 'proxyverify.py']))
     for sub in subs:
         sub.wait()
-    endure = subprocess.Popen(['python3.5', 'proxymonitor.py'])
-    while True:
-        time.sleep(600)
-        
-        
-if __name__ == "__main__":
+
+def main():
+    num = 0
+    info = redis_info()
+    r = redis.StrictRedis(host=info['host'], port=info['port'], password=info['password'])
     setup()
+    endure = subprocess.Popen(['python3.5', 'proxymonitor.py'])
+    pid = endure.pid
+    while True:
+        time.sleep(1800)
+        num += 1
+        if r.scard('proxy') < 500:
+            setup()
+        if not(os.path.exists(pid)):
+            subprocess.Popen(['python3.5', 'proxymonitor.py'])
+            pid = endure.pid
+            
+if __name__ == "__main__":
+    main()
+           

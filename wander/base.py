@@ -5,6 +5,11 @@ from configparser import ConfigParser
 from functools import wraps
 import pickle
 
+def items_info(cfg):
+    items = cfg.sections()
+    items.remove('redis')
+    return items
+    
 def redis_info():
     cfg = ConfigParser()
     cfg.read('config.ini')
@@ -14,11 +19,6 @@ def redis_info():
         'password': cfg.get('redis', 'password')
     }
     return info
-
-def items_info(cfg):
-    items = cfg.sections()
-    items.remove('redis')
-    return items
        
 def push(func):
     @wraps(func)

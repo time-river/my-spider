@@ -1,0 +1,12 @@
+# 一些正则
+http://pachong.org/high.html
+
+r'<tr.*?data-id.*?>.*?<td.*?class="tcenter">.*?</td>.*?<td>(.*?)</td>.*?<td><script>document.write(.*?);</script>'
+
+r'([0-9]+)\^([a-zA-Z]+)[\D]+([0-9])'
+
+r'<script[\s]type="text/javascript">var[\s]([\S]+);var[\s]([\S]+);var[\s]([\S]+);var[\s]([\S]+)[\s]([\S]+);</script>'
+
+http://www.xicidaili.com/nn/
+
+r'<tr.*?class="odd".*?>.*?<td>.*?</td>.*?<td>.*?</td>.*?<td>([\S]+)</td>.*?<td>([\S]+).*?<td>.*?</td>.*?<td>.*?</td>.*?<td>([\S]+)</td>'

@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 from configparser import ConfigParser
-from base import redis_push, items_info
+from base import redis_push, items_info, redis_info
 import redis
 
 def get_raw_proxy():
@@ -19,7 +19,8 @@ def get_raw_proxy():
     return lst
 
 def main():
-    r = redis.StrictRedis(host='127.0.0.1', password="d41d8cd98f00b204e9800998ecf8427e")
+    info = redis_info()
+    r = redis.StrictRedis(host=info['host'], port=info['port'], password=info['password'])
     request_list = list()
     for item in get_raw_proxy():
         for i in range(int(item[2])):
@@ -33,6 +34,4 @@ def main():
     redis_push(r, 'proxy.request', request_list)
 
 if __name__ == '__main__':
-    print('----------raw_proxy_request start----------')
     main()
-    print('----------raw_proxy_request end----------')

@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import logging
 import asyncio
 import aiohttp
 import random
 from base import redis_push, redis_pop, redis_sadd, redis_smembers, redis_srem
-
+    
 class Proxy:
     def __init__(self, use_https_proxy=False, *, redis, raw_proxy_key=None, proxy_key=None):
         self.use_https_proxy = use_https_proxy # don't use now
@@ -58,12 +57,11 @@ class Proxy:
                 async with session.get(self.test_url[random.randrange(len(self.test_url))]) as response: # close connection and response, otherwise will tip: Unclosed connection and Unclosed response
                     try:
                         assert response.status == 200
-                        print('Good proxy: {}'.format(proxy['ip']))
                         redis_sadd(self.redis, self.proxy_key, proxy)
                     except: 
-                        print('Bad proxy: {}, {}'.format(proxy['ip'], response.status))        
+                        pass      
         except: #ProxyConnectionError, HttpProxyError and etc?
-            print("{} timeout".format(proxy['ip']))
+            pass
         finally:
             session.close() # close session when timeout
             
@@ -93,12 +91,10 @@ class Proxy:
                 break
             
     def main(self):
-        print('~~~~~~~~~~proxy verification start~~~~~~~~~~')
         loop = asyncio.get_event_loop()
         fs = asyncio.wait([self._worker() for _ in range(self.concurrency)])
         loop.run_until_complete(fs)
         loop.close()
-        print('~~~~~~~~~~proxy verification end~~~~~~~~~~')
         
     def monitor(self):
         loop = asyncio.get_event_loop()
