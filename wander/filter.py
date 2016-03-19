@@ -6,8 +6,9 @@ import multiprocessing
 from base import redis_pop, redis_push
 
 class Filter:
-    def __init__(self, filter, *, redis, content_key=None, raw_proxy_key=None):
+    def __init__(self, filter, rules=None, *, redis, content_key=None, raw_proxy_key=None):
         self.filter = filter
+        self.rules = rules
         # redis
         self.redis = redis
         self.content_key = content_key
@@ -15,11 +16,11 @@ class Filter:
         
     def _run(self):
         while True:
-            content = redis_pop(self.redis, self.content_key)
-            if not content:
+            obj = redis_pop(self.redis, self.content_key)
+            if not obj:
                 print('filter break')
                 break
-            data = self.filter(content)
+            data = self.filter(obj['content'], self.rules[obj['order']])
             if data:
                 redis_push(self.redis, self.raw_proxy_key, data)
         

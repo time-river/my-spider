@@ -26,7 +26,8 @@ class Claw:
                             content = await response.json()
                         else:
                             content = await response.text(request['type'])
-                        redis_push(self.redis, self.content_key, content)
+                        obj = {'order':request['order'], 'content':content}
+                        redis_push(self.redis, self.content_key, obj)
                     except AssertionError:
                         logging.warning('{} {}'.format(response.status, url))
         except: # kinds of error, not only asyncio.TimeoutError
@@ -38,7 +39,7 @@ class Claw:
             request = redis_pop(self.redis, self.request_key)
             if request:
                 print('claw {} {}'.format(request['url'], request['params']))
-                await self._fetch_page(session, request)
+                await self._fetch_page(request)
             else:
                 break
                             
