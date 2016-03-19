@@ -5,20 +5,19 @@ import logging
 import asyncio
 import aiohttp
 import random
-from base import redis_push, redis_pop
+from base import redis_push, redis_pop, redis_sadd, redis_smembers, redis_srem
 
 class Proxy:
     def __init__(self, use_https_proxy=False, *, redis, raw_proxy_key=None, proxy_key=None):
-        self.test_url = test_url
         self.use_https_proxy = use_https_proxy # don't use now
-        self.concurrency = 15
+        self.concurrency = 50
         # redis
         self.redis = redis
         self.raw_proxy_key = raw_proxy_key
         self.proxy_key = proxy_key
         self.test_url = [
-            'https://www.hao123.com/',
-            'https://www.baidu.com/',
+            #'https://www.hao123.com/',
+            #'https://www.baidu.com/',
             'http://tieba.baidu.com/',
             'http://news.baidu.com/',
             'http://zhidao.baidu.com/',
@@ -28,22 +27,26 @@ class Proxy:
             'http://map.baidu.com/',
             'http://baike.baidu.com/',
             'http://wenku.baidu.com/',
-            'https://www.jd.com/',
-            'https://www.douban.com/',
-            'https://movie.douban.com/',
-            'https://book.douban.com/',
-            'https://music.douban.com/',
+            #'https://www.jd.com/',
+            #'https://www.douban.com/',
+            #'https://movie.douban.com/',
+            #'https://book.douban.com/',
+            #'https://music.douban.com/',
             'http://dongxi.douban.com/',
-            'https://www.alipay.com/',
-            'https://www.taobao.com/',
-            'https://www.1688.com/',
-            'https://www.tmall.com/',
+            #'https://www.alipay.com/',
+            #'https://www.taobao.com/',
+            #'https://www.1688.com/',
+            #'https://www.tmall.com/',
             'http://www.sina.com.cn/',
+            'http://www.weibo.com/',
             'http://www.163.com/',
             'http://www.qq.com/',
             'http://i.qq.com/',
+            'http://www.weiyun.com/',
             'http://www.youku.com/',
-            'http://www.sohu.com/'
+            'http://www.sohu.com/',
+            'http://www.ganji.com/',
+            'http://xa.58.com/'
         ]
         
     async def _verify_proxy(self, proxy):
@@ -56,7 +59,7 @@ class Proxy:
                     try:
                         assert response.status == 200
                         print('Good proxy: {}'.format(proxy['ip']))
-                        redis_push(self.redis, self.proxy_key, proxy)
+                        redis_sadd(self.redis, self.proxy_key, proxy)
                     except: 
                         print('Bad proxy: {}, {}'.format(proxy['ip'], response.status))        
         except: #ProxyConnectionError, HttpProxyError and etc?
@@ -67,16 +70,20 @@ class Proxy:
     async def _worker(self):
         while True:
             proxy = redis_pop(self.redis, self.raw_proxy_key)
-            if proxy and (not(proxy in bfs)): # boom filter
+            if proxy:
                 if proxy['protocol'] == 'https':
-                    continue
+                     continue
                 await self._verify_proxy(proxy)
             else:
                 break
                 
-    async def _loop_worker(self):
+    async def _monitor_worker(self):
+        key = 'monitor.proxy'
+        data = redis_smembers(self.redis, self.proxy_key)
+        redis_push(self.redis, key, data)
         while True:
-            proxy = redis_pop(self.redis, self.raw_proxy_key)
+            proxy = redis_pop(self.redis, key)
+            redis_srem(self.redis, self.proxy_key, proxy) # 有罪待定
             if proxy:
                 if proxy['protocol'] == 'https':
                     continue
@@ -93,7 +100,7 @@ class Proxy:
         loop.close()
         print('~~~~~~~~~~proxy verification end~~~~~~~~~~')
         
-    def loop_main(self):
+    def monitor(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(_loop_worker())
+        loop.run_until_complete(self._monitor_worker())
         loop.close()

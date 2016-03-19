@@ -43,3 +43,14 @@ def redis_srandmember(redis, key):
     serialization = redis.srandmember(key)
     if serialization:
         return pickle.loads(serialization)
+
+def redis_srem(redis, key, obj):
+    serialization = pickle.dumps(obj)
+    print(redis.srem(key, serialization))
+    
+def redis_smembers(redis, key):
+    objects = list()
+    serializations = redis.smembers(key)
+    for serialization in serializations:
+        objects.append(pickle.loads(serialization))
+    return objects
