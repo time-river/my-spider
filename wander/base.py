@@ -39,7 +39,7 @@ def redis_push(redis, key, objects):
     for obj in objects:
         redis.rpush(key, obj)
     
-def redis_pop(redis, key, timeout=600):
+def redis_pop(redis, key, timeout=300):
     serialization = redis.blpop(key, timeout=timeout)
     if serialization:
         return pickle.loads(serialization[1])

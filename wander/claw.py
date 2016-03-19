@@ -30,7 +30,8 @@ class Claw:
                     except AssertionError:
                         logging.warning('{} {}'.format(response.status, url))
         except: # kinds of error, not only asyncio.TimeoutError
-            redis_push(self.redis, self.request_key, request)
+            #redis_push(self.redis, self.request_key, request)
+            pass
                        
     async def _worker(self):
         while True:

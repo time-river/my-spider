@@ -8,6 +8,8 @@ import time
 import os
 
 def setup():
+    sub = subprocess.Popen(['python3.5', 'useragent.py'])
+    sub.wait()
     subs = [subprocess.Popen(['python3.5', 'proxyrequest.py'])]
     subs.append(subprocess.Popen(['python3.5', 'proxyclaw.py']))
     subs.append(subprocess.Popen(['python3.5', 'proxyfilter.py']))

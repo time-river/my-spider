@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 
 from configparser import ConfigParser
-from base import redis_push, items_info, redis_info
+from base import redis_push, items_info, redis_info, redis_srandmember
 import redis
 
 def get_raw_proxy():
@@ -27,7 +27,9 @@ def main():
             request_list.append({
             'url': '{}{}'.format(item[1], i+1),
             'params': None,
-            'headers': None,
+            'headers': {
+                'User-Agent': redis_srandmember(r, 'user.agent')
+            },
             'type': 'utf-8',
             'order': item[0]
             })
