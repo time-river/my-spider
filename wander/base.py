@@ -1,9 +1,25 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+from configparser import ConfigParser
 from functools import wraps
 import pickle
 
+def redis_info():
+    cfg = ConfigParser()
+    cfg.read('config.ini')
+    info = {
+        'host': cfg.get('redis', 'host'),
+        'port': cfg.getint('redis', 'port'),
+        'password': cfg.get('redis', 'password')
+    }
+    return info
+
+def items_info(cfg):
+    items = cfg.sections()
+    items.remove('redis')
+    return items
+       
 def push(func):
     @wraps(func)
     def dec(redis, key, objects):
@@ -23,7 +39,7 @@ def redis_push(redis, key, objects):
     for obj in objects:
         redis.rpush(key, obj)
     
-def redis_pop(redis, key, timeout=10):
+def redis_pop(redis, key, timeout=600):
     serialization = redis.blpop(key, timeout=timeout)
     if serialization:
         return pickle.loads(serialization[1])

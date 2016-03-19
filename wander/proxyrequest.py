@@ -2,14 +2,14 @@
 # -*- coding:utf-8 -*-
 
 from configparser import ConfigParser
-from base import redis_push
+from base import redis_push, items_info
 import redis
 
 def get_raw_proxy():
     lst = list()
     cfg = ConfigParser()
     cfg.read('config.ini')
-    items = cfg.sections()
+    items = items_info(cfg)
     for item in items:
         lst.append((
             cfg.get(item, 'order'),
