@@ -4,13 +4,19 @@
 from configparser import ConfigParser
 from functools import wraps
 import pickle
+import logging
 
-def items_info(cfg):
-    items = cfg.sections()
-    items.remove('redis')
-    return items
+def get_log(name=None):
+    logger = logging.getLogger(name)
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
+    return logger
     
-def redis_info():
+def redis_login():
     cfg = ConfigParser()
     cfg.read('config.ini')
     info = {
@@ -19,7 +25,7 @@ def redis_info():
         'password': cfg.get('redis', 'password')
     }
     return info
-       
+    
 def push(func):
     @wraps(func)
     def dec(redis, key, objects):
@@ -35,37 +41,22 @@ def push(func):
 
 # list operation
 @push
-def redis_push(redis, key, objects):
+def rpush(redis, key, objects):
     for obj in objects:
         redis.rpush(key, obj)
     
-def redis_pop(redis, key, timeout=300):
+def blpop(redis, key, timeout=30):
     serialization = redis.blpop(key, timeout=timeout)
     if serialization:
         return pickle.loads(serialization[1])
-
-def redis_rpoplpush(redis, r_key, l_key):
-    serialization = redis.rpoplpush(r_key, l_key)
-    if serialization:
-        return pickle.loads(serialization)
-
+        
 # set operation
 @push
-def redis_sadd(redis, key, objects):
+def sadd(redis, key, objects):
     for obj in objects:
         redis.sadd(key, obj)
 
-def redis_srandmember(redis, key):
+def srandmember(redis, key):
     serialization = redis.srandmember(key)
     if serialization:
         return pickle.loads(serialization)
-
-def redis_srem(redis, key, obj):
-    print(redis.srem(key, pickle.dumps(obj)))
-    
-def redis_smembers(redis, key):
-    objects = list()
-    serializations = redis.smembers(key)
-    for serialization in serializations:
-        objects.append(pickle.loads(serialization))
-    return objects

@@ -18,15 +18,13 @@ def setup():
         sub.wait()
 
 def main():
-    num = 0
     info = redis_info()
     r = redis.StrictRedis(host=info['host'], port=info['port'], password=info['password'])
     setup()
     endure = subprocess.Popen(['python3.5', 'proxymonitor.py'])
     pid = endure.pid
     while True:
-        time.sleep(1800)
-        num += 1
+        time.sleep(600)
         if r.scard('proxy') < 500:
             setup()
         if not(os.path.exists(pid)):

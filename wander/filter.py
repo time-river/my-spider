@@ -17,7 +17,6 @@ class Filter:
         while True:
             obj = redis_pop(self.redis, self.content_key)
             if not obj:
-                print('filter break')
                 break
             data = self.filter(obj['content'], self.rules[obj['order']])
             if data:
