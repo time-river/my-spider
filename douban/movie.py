@@ -231,6 +231,7 @@ class Download:
                 self.logger.debug('claw comment number: {}'.format(self.claw_comments_num))
                 time.sleep(0.5)
             if commenters:
+                request['url'] = request['url'] + selector.xpath('//*[@id="paginator"]/a[@class="next"]/@href')[0]
                 return commenters, request
             else:
                 return None
@@ -248,9 +249,7 @@ class Download:
             info['comments'] = list()
             num = 0
             while True:
-                request['params'] = {
-                    'start': repr(self.comments_num)
-                }
+                request['params'] = None
                 data = self._filter_comments(request)
                 if data == None:
                     # deal info
