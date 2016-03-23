@@ -2,14 +2,14 @@
 # -*- coding:utf-8 -*-
 
 import logging
-import asyncio
-from asyncio import Queue
-import aiohttp
+import requests
 from lxml import etree
 import redis
 import base
 import time
+from PIL import Image
 import re
+import os
 
 
     
@@ -18,19 +18,74 @@ class Download:
         info = base.redis_login()
         self.redis = redis.StrictRedis(host=info['host'], port=info['port'], password=info['password'])
         self.logger = base.get_log(name="download")
+        self.session = requests.Session()
         self.comments_num = 0
-        self.max_comments = 0   
+        self.max_comments = 0
+        self._get_session()
         
-    async def _fetch_page(self, request):
+    def _get_session(self):
         try:
-            with aiohttp.Timeout(10):
-                async with aiohttp.get(request['url'], params=request['params'], headers=request['headers']) as response:
-                    try:
-                        self.logger.debug("claw: {}".format(response.url))
-                        assert response.status == 200
-                        return await response.text(), response.url
-                    except AssertionError:
-                        self.logger.warning('{} {}'.format(response.status, url))
+            response = self.session.get('https://www.douban.com/accounts/login', timeout=10)
+            try:
+                assert response.status_code == 200
+                selector = etree.HTML(response.text)
+                data = {
+                        selector.xpath('//*[@id="lzform"]/input[2]/@name')[0]:
+                            selector.xpath('//*[@id="lzform"]/input[2]/@value')[0],
+                        selector.xpath('//*[@id="lzform"]/input[1]/@name')[0]:
+                            selector.xpath('//*[@id="lzform"]/input[1]/@value')[0],
+                        selector.xpath('//*[@id="email"]/@name')[0]:
+                            'feather12315@163.com',
+                        selector.xpath('//*[@id="password"]/@name')[0]:
+                            'dou12315ban',
+                        selector.xpath('//*[@id="lzform"]/div[@class="item"]/input[@type="submit"]/@name')[0]:
+                            selector.xpath('//*[@id="lzform"]/div[@class="item"]/input[@type="submit"]/@value')[0],
+                        selector.xpath('//*[@id="remember"]/@name')[0]:
+                            'on'
+                }
+                print(data)
+                if selector.xpath('//*[@id="captcha_image"]'):
+                    value = self._get_captcha(selector.xpath('//*[@id="captcha_image"]/@src')[0])
+                    data[selector.xpath('//*[@id="lzform"]/div[5]/div/div/input[2]/@name')[0]] = selector.xpath('//*[@id="lzform"]/div[5]/div/div/input[2]/@value')[0]
+                    data[selector.xpath('//*[@id="captcha_field"]/@name')[0]] = value
+                print(data)     
+            except:
+               # print(response.text)
+                self.logger.error('login response error', ressponse.status_code)
+                exit()
+            response =  self.session.post(selector.xpath('//*[@id="lzform"]/@action')[0], data=data)
+            try:
+                assert response.status_code == 200
+                self.logger.info('login successfully')
+            except:
+                self.logger.error('login failed')
+                exit()
+        except:
+            self.logger.error('login error!')
+            exit()
+            
+    def _get_captcha(self, url):
+        print(url)
+        response = self.session.get(url)
+        with open("captcha.gif", 'wb') as f:
+            for i in response:
+                f.write(i)
+        with open("captcha.gif", 'rb') as f:
+            Image.open(f).show()
+        os.remove("captcha.gif")
+        return input("Input the captcha.\n")
+        
+    def _fetch_page(self, request):
+        try:
+            response =  self.session.get(request['url'], params=request['params'], headers=request['headers'], timeout=10)
+            try:
+                self.logger.debug("claw: {}".format(response.url))
+                assert response.status_code == 200
+                return response.text, response.url
+            except AssertionError:
+                self.logger.warning('{} {}'.format(response.status_code, response.url))
+                sefl.logger.error(response.text)
+                exit()
         except:
             self.logger.warning('Timeout {} {}'.format(request['url'], request['params']))
     
@@ -45,9 +100,9 @@ class Download:
         }
         return headers
         
-    async def _index_content(self, request):
+    def _index_content(self, request):
         while True: # fault tolerance
-            data = await self._fetch_page(request)
+            data = self._fetch_page(request)
             if data:
                content, raw_url = data
                break
@@ -61,9 +116,9 @@ class Download:
         }
         return content, request
         
-    async def _comments_content(self, request):
+    def _comments_content(self, request):
         while True: # fault tolerance
-            data = await self._fetch_page(request)
+            data = self._fetch_page(request)
             if data:
                content, raw_url = data
                break
@@ -78,12 +133,13 @@ class Download:
         headers['Host'] = url.split('/')[2]
         request = {
             'url': url,
-            'headers': headers
+            'headers': headers,
+            'params': None
         }
         return content, request
             
-    async def _filter_index(self, request):
-        content, request = await self._index_content(request)
+    def _filter_index(self, request):
+        content, request = self._index_content(request)
         selector = etree.HTML(content)
         try:
             movie_info = {
@@ -122,10 +178,10 @@ class Download:
                 request['url'] = comments_url
                 return movie_info, request
             else:
-                self.logger.waring('{} {} Movie information is empty'.format(request['url'], request['params']))
+                self.logger.warning('{} {} Movie information is empty'.format(request['url'], request['params']))
                 return None
         except:
-            self.logger.waring('{} {} Filter failed'.format(request['url'], request['params']))
+            self.logger.warning('{} {} Filter failed'.format(request['url'], request['params']))
             return None
     
     def _get_num(self, string):
@@ -135,9 +191,9 @@ class Download:
         data = pattern.findall(string[0])
         return data
             
-    async def _filter_comments(self, request):
+    def _filter_comments(self, request):
         commenters = list()
-        content, request = await self._comments_content(request)
+        content, request = self._comments_content(request)
         if (not content) and (not content):
             return
         selector = etree.HTML(content)
@@ -156,11 +212,9 @@ class Download:
                     base.strip(
                         item.xpath('./h3/span[@class="comment-vote"]/span/text()')
                     ))
-                await asyncio.sleep(1)
                 commenters.append({
                     'name': base.strip(
-                        item.xpath('./h3/span[@class="comment-info"]/a/text()')
-                    ),
+                        item.xpath('./h3/span[@class="comment-info"]/a/text()')),
                     'rating': self._get_num(
                         item.xpath('./h3/span[@class="comment-info"]/span[1]/@class')
                     ),
@@ -176,6 +230,7 @@ class Download:
                 })
                 self.comments_num += 1
                 self.logger.debug('comment number: {}'.format(self.comments_num))
+                time.sleep(0.5)
             if commenters:
                 return commenters, request
             else:
@@ -185,21 +240,19 @@ class Download:
         #except:
         #    self.logger.error('Filter comments error!\n')
 
-    async def worker(self):
+    def worker(self):
         request = base.blpop(self.redis, 'movie.request')
-        data = await self._filter_index(request)
+        data = self._filter_index(request)
         if data:
-            await asyncio.sleep(2)
+            time.sleep(2)
             info, request = data
             info['comments'] = list()
             num = 0
             while True:
                 request['params'] = {
-                    'start': repr(num),
-                    'limit': '20',
-                    'sort': 'new_score'
+                    'start': repr(self.comments_num)
                 }
-                data = await self._filter_comments(request)
+                data = self._filter_comments(request)
                 if data == None:
                     # deal info
                     break
@@ -210,9 +263,7 @@ class Download:
 
     def run(self):
         self.logger.info('----------start----------')
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.worker())
-        loop.close()
+        self.worker()
         self.logger.info('----------^end^----------')
 
 if __name__ == '__main__':
