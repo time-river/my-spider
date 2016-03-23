@@ -37,7 +37,7 @@ class Download:
                         selector.xpath('//*[@id="email"]/@name')[0]:
                             'feather12315@163.com',
                         selector.xpath('//*[@id="password"]/@name')[0]:
-                            'dou12315ban',
+                            'feather12315',
                         selector.xpath('//*[@id="lzform"]/div[@class="item"]/input[@type="submit"]/@name')[0]:
                             selector.xpath('//*[@id="lzform"]/div[@class="item"]/input[@type="submit"]/@value')[0],
                         selector.xpath('//*[@id="remember"]/@name')[0]:
@@ -124,8 +124,6 @@ class Download:
                break
             else:
                 self.logger.debug('sum:{}, current:{}'.format(self.max_comments, self.comments_num))
-                if self.comments_num == self.max_comments:
-                    return None, None
                 time.sleep(30)
                 # some other ways
         url = raw_url.split('?')[0]
@@ -257,7 +255,10 @@ class Download:
                     # deal info
                     break
                 else:
-                    info['comments'].extend(data[0])
+                    for item in data[0]:
+                        if not (item in info['comments']):
+                            info['comments'].append(item)
+                    self.logger.debug('comment number: {}, max_num: {}'.format(self.comments_num, self.max_comments))
                     request = data[1]
                     num += 20
 
