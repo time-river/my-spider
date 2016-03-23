@@ -19,6 +19,7 @@ class Download:
         self.redis = redis.StrictRedis(host=info['host'], port=info['port'], password=info['password'])
         self.logger = base.get_log(name="download")
         self.session = requests.Session()
+        self.claw_comments_num = 0
         self.comments_num = 0
         self.max_comments = 0
         self._get_session()
@@ -123,7 +124,7 @@ class Download:
                content, raw_url = data
                break
             else:
-                self.logger.debug('sum:{}, current:{}'.format(self.max_comments, self.comments_num))
+                self.logger.debug('sum:{}, current:{}, claw: {}'.format(self.max_comments, self.comments_num, self.claw_comments_num))
                 time.sleep(30)
                 # some other ways
         url = raw_url.split('?')[0]
@@ -226,8 +227,8 @@ class Download:
                         item.xpath('./h3/span[@class="comment-vote"]/span/text()')
                     )
                 })
-                self.comments_num += 1
-                self.logger.debug('comment number: {}'.format(self.comments_num))
+                self.claw_comments_num += 1
+                self.logger.debug('claw comment number: {}'.format(self.claw_comments_num))
                 time.sleep(0.5)
             if commenters:
                 return commenters, request
@@ -258,7 +259,8 @@ class Download:
                     for item in data[0]:
                         if not (item in info['comments']):
                             info['comments'].append(item)
-                    self.logger.debug('comment number: {}, max_num: {}'.format(self.comments_num, self.max_comments))
+                    self.logger.debug('comment number: {}, max_num: {}'.format(len(info['comments']), self.max_comments))
+                    self.comments_num = len(info['comments'])
                     request = data[1]
                     num += 20
 
