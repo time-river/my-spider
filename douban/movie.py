@@ -256,11 +256,14 @@ class Download:
                     # deal info
                     break
                 else:
+                    ori = self.comments_num
                     for item in data[0]:
                         if not (item in info['comments']):
                             info['comments'].append(item)
                     self.logger.debug('comment number: {}, max_num: {}'.format(len(info['comments']), self.max_comments))
                     self.comments_num = len(info['comments'])
+                    if self.comments_num == ori:
+                        self.comments_num += 1 # stop loop
                     request = data[1]
                     num += 20
 
