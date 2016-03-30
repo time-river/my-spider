@@ -22,6 +22,9 @@ class MovieInformation(Item):
     area = Field()
     language = Field()
     release_data = Field()
+    season = Field()
+    episodes = Field()
+    single_runtime = Field()
     runtime = Field()
     alias = Field()
     imdb = Field()
@@ -29,13 +32,15 @@ class MovieInformation(Item):
     awards = Field()
     
 class MovieComment(Item):
-    people = Field()
+    id = Field()
+    name = Field()
     rating = Field()
     time = Field()
     content = Field()
     vote = Field()
 
 class MovieReview(Item):
+    id = Field()
     author = Field()
     rating = Field()
     time = Field()
@@ -45,6 +50,7 @@ class MovieReview(Item):
     useless = Field()
     
 class MovieReviewComment(Item):
+    id = Field()
     people = Field()
     time = Field()
     content = Field()
