@@ -33,7 +33,7 @@ class MovieInformation(Item):
     
 class MovieComment(Item):
     id = Field()
-    name = Field()
+    author = Field()
     rating = Field()
     time = Field()
     content = Field()
@@ -48,9 +48,10 @@ class MovieReview(Item):
     content = Field()
     useful = Field()
     useless = Field()
+    comments =Field()
     
 class MovieReviewComment(Item):
     id = Field()
-    people = Field()
+    author = Field()
     time = Field()
     content = Field()

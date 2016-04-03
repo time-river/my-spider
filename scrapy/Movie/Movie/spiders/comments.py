@@ -8,6 +8,9 @@ from Movie.items import MovieComment
 
 class CommentSpider(Spider):
     name = "moviecomment"
+    start_urls = [
+        
+    ]
     
     def parse(self, response):
         comments = list()
@@ -16,13 +19,13 @@ class CommentSpider(Spider):
         for item in items:
             comment = MovieComment()
             comment['id'] = item.css('h3 > span.comment-info > a ::attr(href)').re(r'[\d]+')
-            comment['name'] = item.css('h3 > span.comment-info > a ::text').extract()
+            comment['author'] = item.css('h3 > span.comment-info > a ::text').extract()
             comment['rating'] = item.css('h3 > span.comment-info > span.rating ::attr(class)').re(r'[1-5]') 
             comment['time'] = item.css('h3 > span.comment-info > span ::text').extract()
             comment['content'] = item.css('p ::text').extract()
             comment['vote'] = item.css('h3 > span.comment-vote > span ::text').extract()
             comments.append(comment)
-        yield comments
+    #    yield comments
         params = selector.css('#paginator > a ::attr(href)').extract()
         if params:
             raw_url = response.url.split('?')
