@@ -70,10 +70,11 @@ def information_filter(item):
 
 class MoviePipeline(object):
     def __init__(self):
-        self.redis = redis.StrictRedis('127.0.0.1', password="d41d8cd98f00b204e9800998ecf8427e")
+        pass
+        #self.redis = redis.StrictRedis('127.0.0.1', password="d41d8cd98f00b204e9800998ecf8427e")
 
     def process_item(self, item, spider):
-        item = information_filter(item)
-        data = dict(item)
-        self.redis.rpush('test', pickle.dumps(data))
+        #item = information_filter(item)
+        #data = dict(item)
+        #self.redis.rpush('test', pickle.dumps(data))
         return item

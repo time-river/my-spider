@@ -54,4 +54,5 @@ class MovieReviewComment(Item):
     id = Field()
     author = Field()
     time = Field()
+    quote_author = Field()
     content = Field()
