@@ -14,5 +14,6 @@ class PicturePipeline(object):
         self.redis = redis.StrictRedis("127.0.0.1")
 
     def process_item(self, item, spider):
-        self.redis.lpush("picture", pickle.dumps(item)
+        item = dict(item)
+        self.redis.lpush("picture", pickle.dumps(item))
         return item

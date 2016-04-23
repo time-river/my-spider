@@ -17,11 +17,9 @@ class PictureSpider(Spider):
         urls = selector.css('a ::attr(href)').extract()
         picture_urls = selector.css('img ::attr(src)').extract()
         for url in picture_urls:
-            print('picture:', url)
-            #yield Request(url=url, callback=self.pictureParse)
+            yield Request(url=url, callback=self.pictureParse)
         for url in urls:
             if ('http' in url):
-                print('request:', url)
                 yield Request(url=url, callback=self.parse)
 
     def pictureParse(self, response):
