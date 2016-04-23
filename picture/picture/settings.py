@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Scrapy settings for Movie project
+# Scrapy settings for picture project
 #
 # For simplicity, this file contains only settings considered important or
 # commonly used. You can find more settings consulting the documentation:
@@ -10,15 +9,15 @@
 #     http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #     http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 
-#LOG_LEVEL = 'INFO'
-BOT_NAME = 'Movie'
+LOG_LEVEL = 'DEBUG'
+BOT_NAME = 'picture'
 
-SPIDER_MODULES = ['Movie.spiders']
-NEWSPIDER_MODULE = 'Movie.spiders'
+SPIDER_MODULES = ['picture.spiders']
+NEWSPIDER_MODULE = 'picture.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'Movie (+http://www.yourdomain.com)'
+#USER_AGENT = 'picture (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
@@ -35,7 +34,7 @@ ROBOTSTXT_OBEY = True
 #CONCURRENT_REQUESTS_PER_IP = 16
 
 # Disable cookies (enabled by default)
-COOKIES_ENABLED = False
+#COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
 #TELNETCONSOLE_ENABLED = False
@@ -49,17 +48,14 @@ COOKIES_ENABLED = False
 # Enable or disable spider middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
-#    'Movie.middlewares.MyCustomSpiderMiddleware': 543,
+#    'picture.middlewares.MyCustomSpiderMiddleware': 543,
 #}
 
 # Enable or disable downloader middlewares
 # See http://scrapy.readthedocs.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
-#    'Movie.middlewares.MyCustomDownloaderMiddleware': 543,
+#    'picture.middlewares.MyCustomDownloaderMiddleware': 543,
 #}
-DOWNLOADER_MIDDLEWARES = {
-    "Movie.middleware.UserAgentMiddleware": 401
-}
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
@@ -70,11 +66,8 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 #ITEM_PIPELINES = {
-#    'Movie.pipelines.SomePipeline': 300,
+#    'picture.pipelines.SomePipeline': 300,
 #}
-ITEM_PIPELINES = {
-    "Movie.pipelines.MoviePipeline": 301,
-}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html

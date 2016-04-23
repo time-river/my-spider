@@ -32,6 +32,7 @@ class MovieInformation(Item):
     awards = Field()
     
 class MovieComment(Item):
+    _from = Field()
     id = Field()
     author = Field()
     rating = Field()
@@ -40,6 +41,7 @@ class MovieComment(Item):
     vote = Field()
 
 class MovieReview(Item):
+    _from = Field()
     id = Field()
     author = Field()
     rating = Field()
@@ -49,7 +51,11 @@ class MovieReview(Item):
     useful = Field()
     useless = Field()
     comments =Field()
-    
+
+class MovieReviewComments(Item):
+    _from = Field()
+    comments = Field()    
+        
 class MovieReviewComment(Item):
     id = Field()
     author = Field()
