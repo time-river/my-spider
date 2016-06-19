@@ -1,10 +1,6 @@
 # wander
 
-随心所欲
-
-## 使用
-
-`$python3.5 monitor.py`
+随心所欲，不想玩了，弃用。
 
 ## LICENSE
 
